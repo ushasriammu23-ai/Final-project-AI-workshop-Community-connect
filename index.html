@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AITS Community Connect | Smart Community & Item Recovery</title>
+  
+  <!-- Fonts: Space Grotesk & DM Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet" />
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-all/6.4.0/css/all.min.css" />
+  
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- QR Code Generator Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            bg: '#090a12',
+            surface: '#11131e',
+            'surface-raised': '#171a27',
+            cyan: '#6de4e2',
+            violet: '#b49aff',
+            coral: '#ff9c88',
+            muted: '#a5a7ba',
+            line: 'rgba(191, 196, 222, 0.13)'
+          },
+          fontFamily: {
+            sans: ['"DM Sans"', 'sans-serif'],
+            display: ['"Space Grotesk"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #090a12;
+      color: #f4f3fa;
+      font-family: "DM Sans", sans-serif;
+    }
+    body::before {
+      position: fixed;
+      z-index: -1;
+      inset: 0;
+      background: radial-gradient(ellipse at 80% 8%, rgba(91, 66, 150, .16), transparent 34%), 
+                  radial-gradient(ellipse at 8% 42%, rgba(35, 126, 134, .09), transparent 34%);
+      content: "";
+      pointer-events: none;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(17, 19, 30, 0.5);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(180, 154, 255, 0.25);
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: rgba(109, 228, 226, 0.5);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-cyan selection:text-black">
+
+  <!-- TOP NAVIGATION HEADER -->
+  <header class="sticky top-0 z-40 bg-[#090a12]/90 backdrop-blur-md border-b border-line px-6 lg:px-12 py-4">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-6">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-cyan/10 border border-cyan/30 flex items-center justify-center text-cyan font-display font-bold text-lg shadow-lg shadow-cyan/10">
+          A
+        </div>
+        <div>
+          <span class="font-display font-bold text-lg text-white tracking-wide block leading-none">AITS Connect</span>
+          <span class="text-xs text-muted font-sans font-medium">Smart Community Platform</span>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="hidden md:flex items-center gap-2 bg-surface/80 p-1.5 rounded-2xl border border-line">
+        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn px-5 py-2 rounded-xl text-sm font-medium transition-all text-cyan bg-surface-raised border border-cyan/20">
+          <i class="fa-solid fa-chart-pie mr-2"></i>Dashboard
+        </button>
+        <button onclick="switchTab('announcements')" id="nav-announcements" class="nav-btn px-5 py-2 rounded-xl text-sm font-medium transition-all text-muted hover:text-white">
+          <i class="fa-solid fa-bullhorn mr-2"></i>Announcements
+        </button>
+        <button onclick="switchTab('discussions')" id="nav-discussions" class="nav-btn px-5 py-2 rounded-xl text-sm font-medium transition-all text-muted hover:text-white">
+          <i class="fa-solid fa-comments mr-2"></i>Discussions
+        </button>
+        <button onclick="switchTab('lostfound')" id="nav-lostfound" class="nav-btn px-5 py-2 rounded-xl text-sm font-medium transition-all text-muted hover:text-white">
+          <i class="fa-solid fa-box-open mr-2"></i>Lost & Found
+        </button>
+        <button onclick="switchTab('qrcodes')" id="nav-qrcodes" class="nav-btn px-5 py-2 rounded-xl text-sm font-medium transition-all text-muted hover:text-white">
+          <i class="fa-solid fa-qrcode mr-2"></i>My QR Tags
+        </button>
+      </nav>
+
+      <!-- User / Role Switcher -->
+      <div class="flex items-center gap-4">
+        <!-- Role Toggle Pill -->
+        <div class="bg-surface p-1 rounded-2xl border border-line flex items-center">
+          <button onclick="setRole('member')" id="role-member" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all bg-cyan text-black shadow-md">
+            Member
+          </button>
+          <button onclick="setRole('admin')" id="role-admin" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all text-muted hover:text-white">
+            Security Desk
+          </button>
+        </div>
+
+        <!-- Notification Bell -->
+        <button onclick="toggleNotifications()" class="relative p-2.5 rounded-2xl bg-surface border border-line text-muted hover:text-white transition">
+          <i class="fa-regular fa-bell text-lg"></i>
+          <span class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-coral rounded-full ring-4 ring-[#090a12]"></span>
+        </button>
+
+        <!-- User Profile Avatar -->
+        <div class="flex items-center gap-3 pl-2 border-l border-line">
+          <div class="w-9 h-9 rounded-2xl bg-violet/20 border border-violet/40 text-violet flex items-center justify-center font-bold text-sm">
+            US
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MOBILE NAVIGATION TOOLBAR -->
+  <div class="md:hidden bg-surface border-b border-line px-4 py-2 flex items-center justify-around overflow-x-auto">
+    <button onclick="switchTab('dashboard')" class="text-xs text-cyan py-1"><i class="fa-solid fa-chart-pie block text-base mb-1 text-center"></i>Dashboard</button>
+    <button onclick="switchTab('announcements')" class="text-xs text-muted py-1"><i class="fa-solid fa-bullhorn block text-base mb-1 text-center"></i>Announce</button>
+    <button onclick="switchTab('discussions')" class="text-xs text-muted py-1"><i class="fa-solid fa-comments block text-base mb-1 text-center"></i>Discuss</button>
+    <button onclick="switchTab('lostfound')" class="text-xs text-muted py-1"><i class="fa-solid fa-box-open block text-base mb-1 text-center"></i>Lost/Found</button>
+    <button onclick="switchTab('qrcodes')" class="text-xs text-muted py-1"><i class="fa-solid fa-qrcode block text-base mb-1 text-center"></i>QR Tags</button>
+  </div>
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <main class="max-w-7xl mx-auto w-full px-6 lg:px-12 py-10 flex-grow">
+
+    <!-- DASHBOARD VIEW -->
+    <div id="view-dashboard" class="space-y-10">
+      
+      <!-- Hero Welcome Banner -->
+      <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-surface-raised via-surface to-surface border border-line p-8 lg:p-10">
+        <div class="relative z-10 max-w-2xl space-y-4">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan/10 border border-cyan/20 text-cyan text-xs font-semibold tracking-wider uppercase">
+            <span class="w-2 h-2 rounded-full bg-cyan animate-pulse"></span> AITS Tirupati Chapter
+          </div>
+          <h1 class="font-display text-3xl lg:text-5xl font-bold text-white tracking-tight leading-tight">
+            Welcome back, <span class="text-cyan">Usha Sri</span>
+          </h1>
+          <p class="text-muted text-base leading-relaxed">
+            Stay synced with campus updates, engage in community discussions, and track real-time recovery alerts across the campus network.
+          </p>
+          <div class="pt-4 flex flex-wrap gap-4">
+            <button onclick="openReportModal('lost')" class="px-6 py-3 rounded-2xl bg-coral text-black font-semibold text-sm hover:opacity-90 transition shadow-lg shadow-coral/20 flex items-center gap-2">
+              <i class="fa-solid fa-circle-exclamation"></i> Report Lost Item
+            </button>
+            <button onclick="openReportModal('found')" class="px-6 py-3 rounded-2xl bg-cyan text-black font-semibold text-sm hover:opacity-90 transition shadow-lg shadow-cyan/20 flex items-center gap-2">
+              <i class="fa-solid fa-hand-holding-heart"></i> Report Found Item
+            </button>
+            <button onclick="openReportModal('sighting')" class="px-6 py-3 rounded-2xl bg-violet text-black font-semibold text-sm hover:opacity-90 transition shadow-lg shadow-violet/20 flex items-center gap-2">
+              <i class="fa-solid fa-eye"></i> Report Sighting
+            </button>
+          </div>
+        </div>
+
+        <!-- Ambient Graphic Element -->
+        <div class="absolute -right-12 -bottom-12 w-96 h-96 bg-gradient-to-tr from-violet/20 to-cyan/20 rounded-full blur-3xl pointer-events-none"></div>
+      </div>
+
+      <!-- Quick Stats Counter Grid -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div class="bg-surface/80 border border-line p-6 rounded-3xl hover:border-cyan/40 transition">
+          <div class="flex items-center justify-between text-muted mb-3">
+            <span class="text-xs font-semibold uppercase tracking-wider">Active Members</span>
+            <i class="fa-solid fa-users text-cyan"></i>
+          </div>
+          <div class="font-display text-3xl font-bold text-white">2,840+</div>
+          <span class="text-xs text-cyan/80 mt-1 block">AITS Campus Network</span>
+        </div>
+
+        <div class="bg-surface/80 border border-line p-6 rounded-3xl hover:border-coral/40 transition">
+          <div class="flex items-center justify-between text-muted mb-3">
+            <span class="text-xs font-semibold uppercase tracking-wider">Lost Reports</span>
+            <i class="fa-solid fa-magnifying-glass text-coral"></i>
+          </div>
+          <div class="font-display text-3xl font-bold text-white">18</div>
+          <span class="text-xs text-coral/80 mt-1 block">4 cases pending match</span>
+        </div>
+
+        <div class="bg-surface/80 border border-line p-6 rounded-3xl hover:border-cyan/40 transition">
+          <div class="flex items-center justify-between text-muted mb-3">
+            <span class="text-xs font-semibold uppercase tracking-wider">Items Recovered</span>
+            <i class="fa-solid fa-circle-check text-cyan"></i>
+          </div>
+          <div class="font-display text-3xl font-bold text-white">142</div>
+          <span class="text-xs text-cyan/80 mt-1 block">89% Recovery rate</span>
+        </div>
+
+        <div class="bg-surface/80 border border-line p-6 rounded-3xl hover:border-violet/40 transition">
+          <div class="flex items-center justify-between text-muted mb-3">
+            <span class="text-xs font-semibold uppercase tracking-wider">Community Sightings</span>
+            <i class="fa-solid fa-binoculars text-violet"></i>
+          </div>
+          <div class="font-display text-3xl font-bold text-white">35</div>
+          <span class="text-xs text-violet/80 mt-1 block">12 verified today</span>
+        </div>
+      </div>
+
+      <!-- Main Dashboard Grid Layout -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Left 2-Column Section: Important Announcements & Recent Sightings -->
+        <div class="lg:col-span-2 space-y-8">
+          
+          <!-- Announcements Preview -->
+          <div class="bg-surface border border-line rounded-3xl p-6 lg:p-8 space-y-6">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-3 h-3 rounded-full bg-cyan"></div>
+                <h2 class="font-display text-xl font-bold text-white">Priority Announcements</h2>
+              </div>
+              <button onclick="switchTab('announcements')" class="text-xs text-cyan hover:underline font-semibold">View All <i class="fa-solid fa-arrow-right ml-1"></i></button>
+            </div>
+
+            <div class="space-y-4">
+              <!-- Announcement Item 1 -->
+              <div class="p-5 rounded-2xl bg-surface-raised border border-line space-y-2 hover:border-cyan/30 transition">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="px-2.5 py-1 rounded-full bg-coral/20 text-coral font-bold uppercase tracking-wider">Urgent</span>
+                  <span class="text-muted">Oct 2, 2026 · Security Desk</span>
+                </div>
+                <h3 class="font-display font-semibold text-lg text-white">Annual Tech Fest Lost & Found Central Booth Setup</h3>
+                <p class="text-muted text-sm leading-relaxed">
+                  All items misplaced near the Auditorium and Main Block during the inauguration will be transferred to the Central Security Desk (Room 102).
+                </p>
+              </div>
+
+              <!-- Announcement Item 2 -->
+              <div class="p-5 rounded-2xl bg-surface-raised border border-line space-y-2 hover:border-cyan/30 transition">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="px-2.5 py-1 rounded-full bg-violet/20 text-violet font-bold uppercase tracking-wider">Notice</span>
+                  <span class="text-muted">Oct 1, 2026 · Admin Office</span>
+                </div>
+                <h3 class="font-display font-semibold text-lg text-white">Smart QR Tag Collection for Student Belongings</h3>
+                <p class="text-muted text-sm leading-relaxed">
+                  Students can now generate smart item tags directly from the portal and print them at the AITS Library Help Desk.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sightings Feed -->
+          <div class="bg-surface border border-line rounded-3xl p-6 lg:p-8 space-y-6">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-3 h-3 rounded-full bg-violet"></div>
+                <h2 class="font-display text-xl font-bold text-white">Recent Sighting Reports</h2>
+              </div>
+              <button onclick="openReportModal('sighting')" class="text-xs text-violet hover:underline font-semibold">+ Log Sighting</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              
+              <!-- Sighting Card 1 -->
+              <div class="p-5 rounded-2xl bg-surface-raised border border-line space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-violet/20 text-violet">Library Desk</span>
+                  <span class="text-xs text-muted">25 mins ago</span>
+                </div>
+                <h4 class="font-display font-semibold text-white">Blue HP Laptop Charger</h4>
+                <p class="text-xs text-muted leading-relaxed">
+                  "Left on the 2nd-floor study desk near window bay #4. Left untouched."
+                </p>
+                <div class="pt-2 border-t border-line/50 flex items-center justify-between text-xs text-muted">
+                  <span>Logged by: Student Member</span>
+                  <button onclick="viewCaseTimeline('ST-9021')" class="text-cyan hover:underline">Verify Case</button>
+                </div>
+              </div>
+
+              <!-- Sighting Card 2 -->
+              <div class="p-5 rounded-2xl bg-surface-raised border border-line space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-violet/20 text-violet">Sports Complex</span>
+                  <span class="text-xs text-muted">2 hours ago</span>
+                </div>
+                <h4 class="font-display font-semibold text-white">Set of 3 Keys with Titan Keychain</h4>
+                <p class="text-xs text-muted leading-relaxed">
+                  "Spotted on the spectator bench near the Badminton court."
+                </p>
+                <div class="pt-2 border-t border-line/50 flex items-center justify-between text-xs text-muted">
+                  <span>Logged by: Physical Dir.</span>
+                  <button onclick="viewCaseTimeline('ST-8812')" class="text-cyan hover:underline">Verify Case</button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right 1-Column Section: AI Matches & Security Desk Activity -->
+        <div class="space-y-8">
+          
+          <!-- Potential Match Radar Box -->
+          <div class="bg-gradient-to-b from-surface to-surface-raised border border-cyan/30 rounded-3xl p-6 lg:p-8 space-y-6 relative overflow-hidden">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <i class="fa-solid fa-wand-magic-sparkles text-cyan text-lg"></i>
+                <h2 class="font-display text-xl font-bold text-white">Potential Matches</h2>
+              </div>
+              <span class="px-2 py-0.5 rounded-full bg-cyan/20 text-cyan text-xs font-bold">Smart Match</span>
+            </div>
+
+            <div class="space-y-4">
+              <!-- Match Alert Card 1 -->
+              <div class="p-4 rounded-2xl bg-surface border border-line space-y-3">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="text-coral font-semibold"><i class="fa-solid fa-circle-exclamation mr-1"></i>Lost ID: #LF-489</span>
+                  <span class="text-cyan font-bold bg-cyan/10 px-2 py-0.5 rounded-md">94% Confidence</span>
+                </div>
+                <div class="text-sm">
+                  <div class="font-semibold text-white">Black Fastrack Backpack</div>
+                  <div class="text-xs text-muted">Matches Found Item #FD-302 (Submitted by Security Desk)</div>
+                </div>
+                <button onclick="openMatchModal('LF-489', 'FD-302')" class="w-full py-2 rounded-xl bg-cyan/10 hover:bg-cyan/20 text-cyan text-xs font-semibold transition border border-cyan/30">
+                  Compare & Initiate Claim
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Handover Status Summary -->
+          <div class="bg-surface border border-line rounded-3xl p-6 lg:p-8 space-y-6">
+            <h2 class="font-display text-xl font-bold text-white flex items-center gap-3">
+              <i class="fa-solid fa-shield-halved text-cyan"></i> Security Desk Vault
+            </h2>
+
+            <div class="space-y-4 text-xs">
+              <div class="flex items-center justify-between p-3 rounded-xl bg-surface-raised border border-line">
+                <div class="flex items-center gap-3">
+                  <div class="w-2 h-2 rounded-full bg-coral"></div>
+                  <span class="text-white font-medium">Pending Verification</span>
+                </div>
+                <span class="font-mono text-muted">3 Cases</span>
+              </div>
+
+              <div class="flex items-center justify-between p-3 rounded-xl bg-surface-raised border border-line">
+                <div class="flex items-center gap-3">
+                  <div class="w-2 h-2 rounded-full bg-cyan"></div>
+                  <span class="text-white font-medium">Ready for Handover</span>
+                </div>
+                <span class="font-mono text-muted">5 Items</span>
+              </div>
+
+              <div class="flex items-center justify-between p-3 rounded-xl bg-surface-raised border border-line">
+                <div class="flex items-center gap-3">
+                  <div class="w-2 h-2 rounded-full bg-violet"></div>
+                  <span class="text-white font-medium">Handed Over Today</span>
+                </div>
+                <span class="font-mono text-muted">8 Items</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ANNOUNCEMENTS VIEW -->
+    <div id="view-announcements" class="hidden space-y-8">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 class="font-display text-3xl font-bold text-white">Community Announcements</h1>
+          <p class="text-muted text-sm mt-1">Verified updates from AITS Administration and Security Desk</p>
+        </div>
+        <div id="admin-announcement-btn" class="hidden">
+          <button onclick="openNewAnnouncementModal()" class="px-5 py-2.5 rounded-2xl bg-cyan text-black font-semibold text-sm hover:opacity-90 transition">
+            + Broadcast Announcement
+          </button>
+        </div>
+      </div>
+
+      <!-- Search & Category Filters -->
+      <div class="flex flex-col sm:flex-row gap-4">
+        <div class="relative flex-grow">
+          <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-muted"></i>
+          <input type="text" placeholder="Search announcements by keywords..." class="w-full bg-surface border border-line rounded-2xl pl-11 pr-4 py-3 text-sm text-white focus:outline-none focus:border-cyan" />
+        </div>
+        <select class="bg-surface border border-line rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan">
+          <option>All Priorities</option>
+          <option>High Priority</option>
+          <option>General Notices</option>
+          <option>Lost & Found Updates</option>
+        </select>
+      </div>
+
+      <!-- Announcements Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <div class="bg-surface border border-line rounded-3xl p-6 space-y-4 hover:border-cyan/30 transition">
+          <div class="flex items-center justify-between">
+            <span class="px-3 py-1 rounded-full bg-coral/20 text-coral text-xs font-bold uppercase tracking-wider">Urgent Priority</span>
+            <span class="text-xs text-muted">Oct 2, 2026</span>
+          </div>
+          <h2 class="font-display text-xl font-bold text-white">Campus Security Protocol Update: Valuables Registration</h2>
+          <p class="text-muted text-sm leading-relaxed">
+            All students and faculty members are advised to register high-value personal belongings (Laptops, Tablets, Lab Equipment) on the Community Connect portal to attach unique QR codes.
+          </p>
+          <div class="pt-4 border-t border-line flex items-center justify-between text-xs text-muted">
+            <span>Posted by: Chief Security Officer</span>
+            <span class="text-cyan font-semibold"><i class="fa-solid fa-paperclip mr-1"></i>1 Document Attached</span>
+          </div>
+        </div>
+
+        <div class="bg-surface border border-line rounded-3xl p-6 space-y-4 hover:border-cyan/30 transition">
+          <div class="flex items-center justify-between">
+            <span class="px-3 py-1 rounded-full bg-violet/20 text-violet text-xs font-bold uppercase tracking-wider">General</span>
+            <span class="text-xs text-muted">Sep 28, 2026</span>
+          </div>
+          <h2 class="font-display text-xl font-bold text-white">Lost Item Recovery Verification Desk Location</h2>
+          <p class="text-muted text-sm leading-relaxed">
+            The Lost & Found claim desk has been officially shifted to Admin Block Room 104. Verified claims can be collected between 10:00 AM and 4:30 PM on all working days.
+          </p>
+          <div class="pt-4 border-t border-line flex items-center justify-between text-xs text-muted">
+            <span>Posted by: AITS Admin Office</span>
+            <span class="text-violet font-semibold">Campus Notice</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- DISCUSSIONS VIEW -->
+    <div id="view-discussions" class="hidden space-y-8">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 class="font-display text-3xl font-bold text-white">Community Discussion Forums</h1>
+          <p class="text-muted text-sm mt-1">Open topic-based communication channels for AITS members</p>
+        </div>
+        <button onclick="openNewPostModal()" class="px-5 py-2.5 rounded-2xl bg-cyan text-black font-semibold text-sm hover:opacity-90 transition">
+          + Create New Topic
+        </button>
+      </div>
+
+      <!-- Forum Categories Pills -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-2 custom-scrollbar">
+        <button class="px-4 py-2 rounded-xl bg-cyan text-black font-semibold text-xs whitespace-nowrap">All Topics</button>
+        <button class="px-4 py-2 rounded-xl bg-surface border border-line text-muted hover:text-white font-medium text-xs whitespace-nowrap">General</button>
+        <button class="px-4 py-2 rounded-xl bg-surface border border-line text-muted hover:text-white font-medium text-xs whitespace-nowrap">Academics</button>
+        <button class="px-4 py-2 rounded-xl bg-surface border border-line text-muted hover:text-white font-medium text-xs whitespace-nowrap">Events</button>
+        <button class="px-4 py-2 rounded-xl bg-surface border border-line text-muted hover:text-white font-medium text-xs whitespace-nowrap">Lost & Found Queries</button>
+      </div>
+
+      <!-- Discussions List -->
+      <div class="space-y-4">
+        
+        <div class="bg-surface border border-line rounded-3xl p-6 space-y-4 hover:border-cyan/30 transition">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-full bg-cyan/20 text-cyan flex items-center justify-center font-bold text-xs">
+                RD
+              </div>
+              <div>
+                <span class="text-sm font-semibold text-white block">Rohan Das</span>
+                <span class="text-xs text-muted">CSE 3rd Year · 1 hour ago</span>
+              </div>
+            </div>
+            <span class="px-3 py-1 rounded-full bg-surface-raised border border-line text-xs font-medium text-cyan">Academics</span>
+          </div>
+
+          <h3 class="font-display text-lg font-bold text-white">Has anyone found a black file folder near the Mechanical Lab?</h3>
+          <p class="text-muted text-sm leading-relaxed">
+            Contains my semester lab manuals and assignment records. Please notify or handover to the Security Desk if found!
+          </p>
+
+          <div class="flex items-center gap-6 text-xs text-muted pt-2 border-t border-line">
+            <button class="hover:text-cyan flex items-center gap-1.5"><i class="fa-regular fa-thumbs-up"></i> 14 Likes</button>
+            <button class="hover:text-cyan flex items-center gap-1.5"><i class="fa-regular fa-comment"></i> 6 Comments</button>
+            <button class="hover:text-coral flex items-center gap-1.5 ml-auto"><i class="fa-regular fa-flag"></i> Report</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- LOST & FOUND HUB VIEW -->
+    <div id="view-lostfound" class="hidden space-y-8">
+      
+      <!-- Top Actions Bar -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 class="font-display text-3xl font-bold text-white">Smart Lost & Found Hub</h1>
+          <p class="text-muted text-sm mt-1">Centralized lost, found, and sighting reports with ownership verification</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+          <button onclick="openReportModal('lost')" class="px-4 py-2.5 rounded-2xl bg-coral text-black font-semibold text-xs hover:opacity-90 transition">
+            🔴 Report Lost
+          </button>
+          <button onclick="openReportModal('found')" class="px-4 py-2.5 rounded-2xl bg-cyan text-black font-semibold text-xs hover:opacity-90 transition">
+            🟢 Report Found
+          </button>
+          <button onclick="openReportModal('sighting')" class="px-4 py-2.5 rounded-2xl bg-violet text-black font-semibold text-xs hover:opacity-90 transition">
+            🟡 Report Sighting
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter Controls -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <input type="text" placeholder="Search by item name, keyword..." class="bg-surface border border-line rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan" />
+        <select class="bg-surface border border-line rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan">
+          <option>All Statuses</option>
+          <option>Lost</option>
+          <option>Found</option>
+          <option>Sighting Reported</option>
+          <option>Ready for Handover</option>
+          <option>Returned</option>
+        </select>
+        <select class="bg-surface border border-line rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan">
+          <option>All Categories</option>
+          <option>Electronics</option>
+          <option>Keys & Cards</option>
+          <option>Bags & Wallets</option>
+          <option>Books & Stationary</option>
+          <option>Others</option>
+        </select>
+        <input type="date" class="bg-surface border border-line rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan" />
+      </div>
+
+      <!-- Lost & Found Cards Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <!-- Card 1: Lost Item -->
+        <div class="bg-surface border border-line rounded-3xl p-6 space-y-4 flex flex-col justify-between hover:border-coral/40 transition">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="px-3 py-1 rounded-full bg-coral/20 text-coral text-xs font-bold uppercase tracking-wider">🔴 Lost</span>
+              <span class="text-xs text-muted">Ref: #LF-489</span>
+            </div>
+            <h3 class="font-display font-bold text-xl text-white">Black Fastrack Backpack</h3>
+            <p class="text-xs text-muted leading-relaxed">
+              Contains a Lenovo charger, blue spiral notepad, and a pair of spectacles. Lost near Central Library.
+            </p>
+            <div class="space-y-1 text-xs text-muted">
+              <div><i class="fa-solid fa-location-dot w-4 text-coral"></i> Library 2nd Floor</div>
+              <div><i class="fa-regular fa-clock w-4 text-coral"></i> Oct 2, 2026 · ~2:15 PM</div>
+            </div>
+          </div>
+          <div class="pt-4 border-t border-line flex items-center justify-between">
+            <button onclick="viewCaseTimeline('LF-489')" class="text-xs text-cyan hover:underline font-semibold">View Case Timeline</button>
+            <button onclick="openClaimModal('LF-489')" class="px-3 py-1.5 rounded-xl bg-coral/10 hover:bg-coral/20 text-coral text-xs font-semibold border border-coral/30">Claim Ownership</button>
+          </div>
+        </div>
+
+        <!-- Card 2: Found Item -->
+        <div class="bg-surface border border-line rounded-3xl p-6 space-y-4 flex flex-col justify-between hover:border-cyan/40 transition">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="px-3 py-1 rounded-full bg-cyan/20 text-cyan text-xs font-bold uppercase tracking-wider">🟢 Found</span>
+              <span class="text-xs text-muted">Ref: #FD-302</span>
+            </div>
+            <h3 class="font-display font-bold text-xl text-white">Black College Bag</h3>
+            <p class="text-xs text-muted leading-relaxed">
+              Found on a chair outside Library Reading Room. Handed over to Central Security Desk.
+            </p>
+            <div class="space-y-1 text-xs text-muted">
+              <div><i class="fa-solid fa-location-dot w-4 text-cyan"></i> Handed to Security Desk</div>
+              <div><i class="fa-regular fa-clock w-4 text-cyan"></i> Oct 2, 2026 · ~3:00 PM</div>
+            </div>
+          </div>
+          <div class="pt-4 border-t border-line flex items-center justify-between">
+            <button onclick="viewCaseTimeline('FD-302')" class="text-xs text-cyan hover:underline font-semibold">View Case Timeline</button>
+            <button onclick="openClaimModal('FD-302')" class="px-3 py-1.5 rounded-xl bg-cyan/10 hover:bg-cyan/20 text-cyan text-xs font-semibold border border-cyan/30">Verify & Claim</button>
+          </div>
+        </div>
+
+        <!-- Card 3: Sighting -->
+        <div class="bg-surface border border-line rounded-3xl p-6 space-y-4 flex flex-col justify-between hover:border-violet/40 transition">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="px-3 py-1 rounded-full bg-violet/20 text-violet text-xs font-bold uppercase tracking-wider">🟡 Sighting</span>
+              <span class="text-xs text-muted">Ref: #ST-9021</span>
+            </div>
+            <h3 class="font-display font-bold text-xl text-white">Blue HP Laptop Charger</h3>
+            <p class="text-xs text-muted leading-relaxed">
+              Spotted left plugged in on the study desk at Library bay #4. Not collected by finder.
+            </p>
+            <div class="space-y-1 text-xs text-muted">
+              <div><i class="fa-solid fa-location-dot w-4 text-violet"></i> Library Bay #4</div>
+              <div><i class="fa-regular fa-clock w-4 text-violet"></i> Oct 2, 2026 · ~3:30 PM</div>
+            </div>
+          </div>
+          <div class="pt-4 border-t border-line flex items-center justify-between">
+            <button onclick="viewCaseTimeline('ST-9021')" class="text-xs text-cyan hover:underline font-semibold">View Case Timeline</button>
+            <button onclick="openReportModal('found')" class="px-3 py-1.5 rounded-xl bg-violet/10 hover:bg-violet/20 text-violet text-xs font-semibold border border-violet/30">I Found This Item</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- QR TAG GENERATOR VIEW -->
+    <div id="view-qrcodes" class="hidden space-y-8">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 class="font-display text-3xl font-bold text-white">Smart QR Tag Generator</h1>
+          <p class="text-muted text-sm mt-1">Register your belongings and generate unique privacy-safe recovery QR tags</p>
+        </div>
+        <button onclick="openRegisterItemModal()" class="px-5 py-2.5 rounded-2xl bg-cyan text-black font-semibold text-sm hover:opacity-90 transition">
+          + Register New Belonging
+        </button>
+      </div>
+
+      <!-- QR Tags Showcase & Live Simulator -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Registered Items List -->
+        <div class="lg:col-span-2 space-y-4">
+          <h2 class="font-display text-xl font-bold text-white">My Registered Items</h2>
+          
+          <div class="bg-surface border border-line rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="space-y-2 text-center md:text-left">
+              <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-md bg-cyan/10 text-cyan font-mono text-xs font-bold">
+                ID: AITS-48291
+              </div>
+              <h3 class="font-display text-xl font-bold text-white">Dell XPS Laptop Bag</h3>
+              <p class="text-xs text-muted">Registered to: Usha Sri (CSE Dept)</p>
+              <div class="text-xs text-cyan"><i class="fa-solid fa-shield-check mr-1"></i> Privacy Protected (Phone Hidden)</div>
+            </div>
+
+            <!-- Canvas QR Tag -->
+            <div class="bg-white p-4 rounded-2xl shadow-xl flex flex-col items-center gap-2">
+              <div id="qrcode-demo" class="w-28 h-28"></div>
+              <span class="font-mono text-[10px] text-black font-bold tracking-wider">AITS-48291</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Finder Scanner Simulator Box -->
+        <div class="bg-surface border border-line rounded-3xl p-6 lg:p-8 space-y-6">
+          <div class="space-y-2">
+            <span class="px-3 py-1 rounded-full bg-violet/20 text-violet text-xs font-bold uppercase tracking-wider">Simulator</span>
+            <h2 class="font-display text-xl font-bold text-white">Finder QR Scan Test</h2>
+            <p class="text-xs text-muted leading-relaxed">
+              Test what a finder sees when scanning tag <span class="font-mono text-cyan">AITS-48291</span>.
+            </p>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-surface-raised border border-line space-y-4 text-xs">
+            <div class="p-3 rounded-xl bg-cyan/10 border border-cyan/20 text-cyan">
+              <i class="fa-solid fa-lock mr-1.5"></i> Owner contact info is hidden for safety.
+            </div>
+            <div>
+              <span class="text-muted block">Item Found:</span>
+              <span class="text-white font-semibold text-sm">Dell XPS Laptop Bag</span>
+            </div>
+            <div>
+              <span class="text-muted block">Authorized Drop Spot:</span>
+              <span class="text-white font-semibold">AITS Central Security Desk</span>
+            </div>
+            <button onclick="simulateFinderNotification()" class="w-full py-3 rounded-xl bg-cyan text-black font-semibold hover:opacity-90 transition">
+              <i class="fa-solid fa-paper-plane mr-2"></i> Send One-Click Found Alert to Owner
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ADMIN / SECURITY DESK DASHBOARD VIEW -->
+    <div id="view-admin" class="hidden space-y-10">
+      
+      <div class="flex items-center justify-between">
+        <div>
+          <span class="px-3 py-1 rounded-full bg-coral/20 text-coral text-xs font-bold uppercase tracking-wider">Authorized Area</span>
+          <h1 class="font-display text-3xl font-bold text-white mt-2">Security Desk & Admin Control Center</h1>
+        </div>
+        <button onclick="generateHandoverPass()" class="px-5 py-2.5 rounded-2xl bg-violet text-black font-semibold text-sm hover:opacity-90 transition">
+          <i class="fa-solid fa-receipt mr-2"></i> Issue Handover Pass
+        </button>
+      </div>
+
+      <!-- Analytics Charts Row -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="bg-surface border border-line rounded-3xl p-6 space-y-4">
+          <h2 class="font-display text-lg font-bold text-white">Item Recovery Volume Trend</h2>
+          <div class="h-60">
+            <canvas id="chart-recovery"></canvas>
+          </div>
+        </div>
+
+        <div class="bg-surface border border-line rounded-3xl p-6 space-y-4">
+          <h2 class="font-display text-lg font-bold text-white">Item Categories Breakdown</h2>
+          <div class="h-60 flex items-center justify-center">
+            <canvas id="chart-categories"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Verification Queue Table -->
+      <div class="bg-surface border border-line rounded-3xl p-6 lg:p-8 space-y-6">
+        <h2 class="font-display text-xl font-bold text-white">Pending Ownership Verification Claims</h2>
+        
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-muted">
+            <thead class="bg-surface-raised text-white uppercase text-[10px] font-bold tracking-wider">
+              <tr>
+                <th class="p-4 rounded-l-xl">Claim ID</th>
+                <th class="p-4">Item Ref</th>
+                <th class="p-4">Claimant Name</th>
+                <th class="p-4">Verification Details Provided</th>
+                <th class="p-4">Status</th>
+                <th class="p-4 rounded-r-xl text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-line">
+              <tr>
+                <td class="p-4 font-mono text-cyan">#CLM-1092</td>
+                <td class="p-4 font-mono text-white">#FD-302</td>
+                <td class="p-4 text-white font-medium">Usha Sri</td>
+                <td class="p-4">Matched internal pocket serial tag & sticker description</td>
+                <td class="p-4"><span class="px-2.5 py-1 rounded-full bg-coral/20 text-coral font-bold">Under Verification</span></td>
+                <td class="p-4 text-right space-x-2">
+                  <button onclick="verifyClaim('CLM-1092', true)" class="px-3 py-1 rounded-lg bg-cyan text-black font-semibold">Approve</button>
+                  <button onclick="verifyClaim('CLM-1092', false)" class="px-3 py-1 rounded-lg bg-coral/20 text-coral font-semibold">Reject</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-line bg-surface/50 py-8 px-6 lg:px-12 text-xs text-muted mt-12">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-6 h-6 rounded-lg bg-cyan/20 text-cyan flex items-center justify-center font-bold text-xs">A</div>
+        <span class="text-white font-semibold">AITS Community Connect</span>
+      </div>
+      <div>Designed for Colleges, Apartments, and Campus Networks</div>
+      <div class="text-muted">© 2026 AITS Community. All Rights Reserved.</div>
+    </div>
+  </footer>
+
+  <!-- MODAL CONTAINERS -->
+
+  <!-- 1. REPORT ITEM MODAL -->
+  <div id="modal-report" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-surface border border-line rounded-3xl max-w-lg w-full p-6 lg:p-8 space-y-6 max-h-[90vh] overflow-y-auto custom-scrollbar">
+      <div class="flex items-center justify-between">
+        <h2 id="report-modal-title" class="font-display text-2xl font-bold text-white">Report Item</h2>
+        <button onclick="closeModal('modal-report')" class="text-muted hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+      </div>
+
+      <form onsubmit="submitItemReport(event)" class="space-y-4 text-xs">
+        <div>
+          <label class="block text-muted mb-1">Item Title / Name</label>
+          <input type="text" id="report-title" required placeholder="e.g. Blue HP Laptop Charger" class="w-full bg-surface-raised border border-line rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-muted mb-1">Category</label>
+            <select id="report-category" class="w-full bg-surface-raised border border-line rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan">
+              <option>Electronics</option>
+              <option>Keys & Cards</option>
+              <option>Bags & Wallets</option>
+              <option>Books & Stationary</option>
+              <option>Others</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-muted mb-1">Date</label>
+            <input type="date" required class="w-full bg-surface-raised border border-line rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-muted mb-1">Location</label>
+          <input type="text" required placeholder="e.g. Central Library 2nd Floor Study Room" class="w-full bg-surface-raised border border-line rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan" />
+        </div>
+
+        <div>
+          <label class="block text-muted mb-1">Description & Distinguishing Features</label>
+          <textarea rows="3" placeholder="Provide details like scratch marks, stickers, color variants..." class="w-full bg-surface-raised border border-line rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan"></textarea>
+        </div>
+
+        <div id="hidden-verification-field">
+          <label class="block text-coral mb-1 font-semibold">Secret Verification Question (Hidden from Public)</label>
+          <input type="text" placeholder="e.g. What is written inside the inner zip pocket?" class="w-full bg-surface-raised border border-coral/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-coral" />
+        </div>
+
+        <button type="submit" class="w-full py-3.5 rounded-2xl bg-cyan text-black font-semibold text-sm hover:opacity-90 transition">
+          Submit Report
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. CASE TIMELINE MODAL -->
+  <div id="modal-timeline" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-surface border border-line rounded-3xl max-w-md w-full p-6 lg:p-8 space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <span class="text-xs text-cyan font-mono font-bold" id="timeline-case-id">Case #LF-489</span>
+          <h2 class="font-display text-xl font-bold text-white">Recovery Audit Timeline</h2>
+        </div>
+        <button onclick="closeModal('modal-timeline')" class="text-muted hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+      </div>
+
+      <!-- Vertical Timeline Component -->
+      <div class="space-y-6 relative pl-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-line text-xs">
+        
+        <div class="relative">
+          <span class="absolute -left-6 top-0.5 w-2.5 h-2.5 rounded-full bg-coral"></span>
+          <div class="font-semibold text-white">Item Reported Lost</div>
+          <div class="text-muted">Oct 2, 2:15 PM · Logged by Owner</div>
+        </div>
+
+        <div class="relative">
+          <span class="absolute -left-6 top-0.5 w-2.5 h-2.5 rounded-full bg-cyan"></span>
+          <div class="font-semibold text-white">Community Alert Broadcasted</div>
+          <div class="text-muted">Oct 2, 2:16 PM · Instant Alert System</div>
+        </div>
+
+        <div class="relative">
+          <span class="absolute -left-6 top-0.5 w-2.5 h-2.5 rounded-full bg-violet"></span>
+          <div class="font-semibold text-white">Potential Match Identified</div>
+          <div class="text-muted">Oct 2, 3:10 PM · Match Confidence 94%</div>
+        </div>
+
+        <div class="relative opacity-50">
+          <span class="absolute -left-6 top-0.5 w-2.5 h-2.5 rounded-full bg-muted"></span>
+          <div class="font-semibold text-white">Ownership Claim Pending</div>
+          <div class="text-muted">Awaiting Security Verification</div>
+        </div>
+
+      </div>
+
+      <button onclick="closeModal('modal-timeline')" class="w-full py-3 rounded-2xl bg-surface-raised border border-line text-white font-semibold text-xs">Close</button>
+    </div>
+  </div>
+
+  <!-- 3. SMART AI MATCH COMPARISON MODAL -->
+  <div id="modal-match" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-surface border border-line rounded-3xl max-w-2xl w-full p-6 lg:p-8 space-y-6">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-wand-magic-sparkles text-cyan"></i>
+          <h2 class="font-display text-2xl font-bold text-white">Potential Match Comparison</h2>
+        </div>
+        <button onclick="closeModal('modal-match')" class="text-muted hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4 text-xs">
+        <div class="p-4 rounded-2xl bg-coral/10 border border-coral/20 space-y-2">
+          <span class="font-bold text-coral uppercase tracking-wider">Lost Report</span>
+          <div class="font-bold text-white text-base">Black Fastrack Backpack</div>
+          <p class="text-muted">Lost near Central Library with charger & spectacles.</p>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-cyan/10 border border-cyan/20 space-y-2">
+          <span class="font-bold text-cyan uppercase tracking-wider">Found Report</span>
+          <div class="font-bold text-white text-base">Black College Bag</div>
+          <p class="text-muted">Handed over at Security Desk outside Library Room.</p>
+        </div>
+      </div>
+
+      <div class="p-4 rounded-2xl bg-surface-raised border border-line text-xs space-y-2">
+        <div class="font-semibold text-cyan">Matching Attributes:</div>
+        <div class="grid grid-cols-2 gap-2 text-muted">
+          <div>• Category: Bags & Accessories</div>
+          <div>• Location Proximity: Library</div>
+          <div>• Time Delta: 45 minutes</div>
+          <div>• Color Match: Black</div>
+        </div>
+      </div>
+
+      <div class="flex gap-4">
+        <button onclick="closeModal('modal-match')" class="w-1/2 py-3 rounded-2xl bg-surface-raised text-muted font-semibold text-xs">Not a Match</button>
+        <button onclick="confirmMatchInitiate()" class="w-1/2 py-3 rounded-2xl bg-cyan text-black font-semibold text-xs">Confirm Match & Start Claim</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATION LOGIC SCRIPT -->
+  <script>
+    // Tab Navigation Switcher
+    function switchTab(tabId) {
+      const tabs = ['dashboard', 'announcements', 'discussions', 'lostfound', 'qrcodes', 'admin'];
+      tabs.forEach(id => {
+        const view = document.getElementById(`view-${id}`);
+        const btn = document.getElementById(`nav-${id}`);
+        if (view) view.classList.add('hidden');
+        if (btn) {
+          btn.classList.remove('text-cyan', 'bg-surface-raised', 'border', 'border-cyan/20');
+          btn.classList.add('text-muted');
+        }
+      });
+
+      const activeView = document.getElementById(`view-${tabId}`);
+      const activeBtn = document.getElementById(`nav-${tabId}`);
+      if (activeView) activeView.classList.remove('hidden');
+      if (activeBtn) {
+        activeBtn.classList.remove('text-muted');
+        activeBtn.classList.add('text-cyan', 'bg-surface-raised', 'border', 'border-cyan/20');
+      }
+    }
+
+    // Role Switcher (Member vs Admin/Security)
+    function setRole(role) {
+      const memberBtn = document.getElementById('role-member');
+      const adminBtn = document.getElementById('role-admin');
+      const adminAnnouncementBtn = document.getElementById('admin-announcement-btn');
+
+      if (role === 'admin') {
+        adminBtn.classList.add('bg-cyan', 'text-black');
+        adminBtn.classList.remove('text-muted');
+        memberBtn.classList.remove('bg-cyan', 'text-black');
+        memberBtn.classList.add('text-muted');
+        if (adminAnnouncementBtn) adminAnnouncementBtn.classList.remove('hidden');
+        switchTab('admin');
+      } else {
+        memberBtn.classList.add('bg-cyan', 'text-black');
+        memberBtn.classList.remove('text-muted');
+        adminBtn.classList.remove('bg-cyan', 'text-black');
+        adminBtn.classList.add('text-muted');
+        if (adminAnnouncementBtn) adminAnnouncementBtn.classList.add('hidden');
+        switchTab('dashboard');
+      }
+    }
+
+    // Modal Handlers
+    function openReportModal(type) {
+      const modal = document.getElementById('modal-report');
+      const title = document.getElementById('report-modal-title');
+      if (type === 'lost') title.innerText = '🔴 Report Lost Item';
+      if (type === 'found') title.innerText = '🟢 Report Found Item';
+      if (type === 'sighting') title.innerText = '🟡 Report Sighting';
+      modal.classList.remove('hidden');
+    }
+
+    function viewCaseTimeline(caseId) {
+      document.getElementById('timeline-case-id').innerText = `Case #${caseId}`;
+      document.getElementById('modal-timeline').classList.remove('hidden');
+    }
+
+    function openMatchModal(lostId, foundId) {
+      document.getElementById('modal-match').classList.remove('hidden');
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.add('hidden');
+    }
+
+    function submitItemReport(e) {
+      e.preventDefault();
+      alert('Report submitted successfully! The community network has been alerted.');
+      closeModal('modal-report');
+    }
+
+    function simulateFinderNotification() {
+      alert('Alert Sent! The owner has received a notification to collect the item from the Security Desk.');
+    }
+
+    // Initialize QR Code Generator
+    window.addEventListener('DOMContentLoaded', () => {
+      const qrContainer = document.getElementById('qrcode-demo');
+      if (qrContainer) {
+        new QRCode(qrContainer, {
+          text: "https://aits-connect.edu/recover/AITS-48291",
+          width: 112,
+          height: 112,
+          colorDark : "#000000",
+          colorLight : "#ffffff",
+          correctLevel : QRCode.CorrectLevel.H
+        });
+      }
+
+      // Initialize Security Dashboard Chart.js Graph
+      const ctx1 = document.getElementById('chart-recovery');
+      if (ctx1) {
+        new Chart(ctx1, {
+          type: 'line',
+          data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+              label: 'Items Recovered',
+              data: [12, 19, 15, 25, 22, 30, 28],
+              borderColor: '#6de4e2',
+              backgroundColor: 'rgba(109, 228, 226, 0.1)',
+              fill: true,
+              tension: 0.4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { grid: { color: 'rgba(191,196,222,0.1)' }, ticks: { color: '#a5a7ba' } },
+              y: { grid: { color: 'rgba(191,196,222,0.1)' }, ticks: { color: '#a5a7ba' } }
+            }
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>
